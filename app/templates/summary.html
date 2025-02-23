@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geminiに任せて</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .container {
+            background-color: #d2deff;
+        }
+        .summary-content {
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 3px;
+        }
+        .summary-content h2 {
+            margin-top: 20px;
+        }
+        .summary-content ol, .summary-content ul {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>～ Geminiに任せて ～</h1>
+        <div class="summary-content">
+            {{ ai_summary }}
+        </div>
+        <a href="{{ url_for('index') }}" class="button">
+            <i class="fas fa-list"></i> 一覧に戻る
+        </a>
+    </div>
+</body>
+</html>

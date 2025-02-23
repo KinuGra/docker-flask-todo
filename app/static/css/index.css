@@ -27,7 +27,7 @@
     }
 
     .card {
-        margin-bottom: 24px;
+        margin-bottom: 15px;
         text-align: left;
 
         a {
@@ -78,4 +78,8 @@
     .sort-form button:hover {
         background: #0056b3;
     }
+}
+
+.completed-title {
+    color: rgb(196, 196, 196); /* 斜線が見やすくなるように色を変更 */
 }

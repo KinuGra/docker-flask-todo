@@ -3,6 +3,4 @@ psycopg2-binary==2.9.7
 Flask-SQLAlchemy==3.0.5
 flask-migrate==4.0.7
 python-dotenv
-google-auth==2.20.0
-google-auth-oauthlib==1.0.0
-google-api-python-client==2.94.0
+google-genai

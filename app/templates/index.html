@@ -26,12 +26,12 @@
             <!-- ソート -->
             <form method="GET" action="/" class="sort-form">
                 <label for="sort">並び替え:</label>
-                <select id="sort" name="sort">
-                    <option value="created_at_desc">作成日（降順）</option>
-                    <option value="deadline_asc">期限日（昇順）</option>
-                    <option value="deadline_desc">期限日（降順）</option>
+                <select id="sort" name="sort" onChange="this.form.submit()">
+                    <option value="created_at_desc" {% if request.args.get('sort') == 'created_at_desc' %}selected{% endif %}>作成日（降順）</option>
+                    <option value="deadline_asc" {% if request.args.get('sort') == 'deadline_asc' %}selected{% endif %}>期限日（昇順）</option>
+                    <option value="deadline_desc" {% if request.args.get('sort') == 'deadline_desc' %}selected{% endif %}>期限日（降順）</option>
                 </select>
-                <button type="submit">適用</button>
+                <input type="hidden" name="filter" value="{{ request.args.get('filter', '') }}">
             </form>
 
             {% if not memos %}
@@ -51,6 +51,8 @@
                                 value="True"
                                 onChange="this.form.submit()"
                                 {% if memo.completed %}checked{% endif %}>
+                        <input type="hidden" name="sort" value="{{ request.args.get('sort', 'created_at_desc') }}">
+                        <input type="hidden" name="filter" value="{{ request.args.get('filter', '') }}">
 
                         <!-- タスク名  既存-->
                         <a href="{{ url_for('view_memo', memo_id=memo.id) }}" class="{% if memo.completed %}completed-title{% endif %}">{{ memo.title }}</a>
@@ -67,5 +69,17 @@
             </a>
         </div>
     </div>
+    <script>
+        // ページのスクロール位置を保持するためのスクリプト
+        document.addEventListener("DOMContentLoaded", function() {
+            if (sessionStorage.getItem("scrollPosition")) {
+                window.scrollTo(0, sessionStorage.getItem("scrollPosition"));
+            }
+        });
+
+        window.addEventListener("beforeunload", function() {
+            sessionStorage.setItem("scrollPosition", window.scrollY);
+        });
+    </script>
 </body>
 </html>

@@ -61,8 +61,8 @@ def toggle_complete(memo_id):
     db.session.commit()
 
     # 現在の並び替えパラメータを取得
-    sort = request.args.get('sort', 'created_at_desc')
-    filter = request.args.get('filter', None)
+    sort = request.form.get('sort', 'created_at_desc')
+    filter = request.form.get('filter', None)
 
     return redirect(url_for('index', sort=sort, filter=filter))
 

@@ -79,6 +79,7 @@ def update_memo(memo_id):
     memo = Memo.query.get_or_404(str(memo_id))
     memo.title = request.form['title']
     memo.content = request.form['content']
+    memo.deadline = request.form.get('deadline')
     db.session.commit()
     return redirect(url_for('view_memo', memo_id=memo_id))
 

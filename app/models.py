@@ -9,3 +9,5 @@ class Memo(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    completed = db.Column(db.Boolean, default=False)  # ← 追加
+    

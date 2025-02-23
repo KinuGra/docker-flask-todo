@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 from app.models import db, Memo
 from dotenv import load_dotenv
+from flask_migrate import Migrate 
+
 import os
 from uuid import UUID
 
@@ -21,6 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRES_USER}:{POSTGRES
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
+migrate = Migrate(app, db)  # Flask-Migrate の設定
+
 
 @app.before_request
 def create_tables():
@@ -31,6 +35,19 @@ def create_tables():
 def index():
     memos = Memo.query.order_by(Memo.created_at.desc()).all()
     return render_template('index.html', memos=memos)
+
+
+#sabo
+@app.route('/memo/<uuid:memo_id>/toggle_complete', methods=['POST'])
+def toggle_complete(memo_id):
+    memo = Memo.query.get_or_404(str(memo_id))
+
+    # チェックボックスが送信されていれば "True"、外れていれば None
+    completed_form_value = request.form.get('completed')
+    memo.completed = (completed_form_value == 'True')
+
+    db.session.commit()
+    return redirect(url_for('index'))
 
 # メモの詳細を表示
 @app.route('/memo/<uuid:memo_id>')

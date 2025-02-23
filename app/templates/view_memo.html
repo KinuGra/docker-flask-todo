@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ memo.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/view_memo.css') }}">
+</head>
+<body>
+    <div id="view_memo" class="container center">
+        <h1 class="title-border">{{ memo.title }}</h1>
+
+        <div class="contents">
+            <p>{{ memo.content }}</p>
+            <p class="small">作成日: {{ memo.created_at.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
+        </div>
+
+        <div class="button-group">
+            <a href="{{ url_for('edit_memo', memo_id=memo.id) }}" class="edit-button button">
+                <i class="fas fa-edit"></i> 編集
+            </a>
+
+            <form method="POST" action="{{ url_for('delete_memo', memo_id=memo.id) }}">
+                <button type="submit" class="delete button">削除</button>
+            </form>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="button">一覧に戻る</a>
+    </div>
+</body>
+</html>

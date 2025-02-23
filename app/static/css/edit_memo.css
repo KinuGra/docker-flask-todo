@@ -1,0 +1,74 @@
+/* 編集フォームのスタイル */
+.edit-form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edit-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.edit-form input,
+.edit-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 5px rgba(0, 122, 255, 0.5);
+    outline: none;
+}
+
+.save-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007aff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.save-button:hover {
+    background-color: #005bb5;
+}
+
+.button-group {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.cancel-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #ccc;
+    color: #333;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+    background-color: #999;
+}

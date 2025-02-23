@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from app.models import db, Memo
 from dotenv import load_dotenv
 from flask_migrate import Migrate
 import os
 from uuid import UUID
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 
 # .envファイルを読み込む
 load_dotenv()
@@ -16,6 +19,7 @@ POSTGRES_HOST = os.getenv('POSTGRES_HOST')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT')
 
 app = Flask(__name__)
+app.secret_key = 'SECRET_KEY'  # 適当な秘密鍵を設定してください
 
 # SQLAlchemy設定
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}'
@@ -105,6 +109,101 @@ def update_memo(memo_id):
     memo.deadline = deadline if deadline else None
     db.session.commit()
     return redirect(url_for('view_memo', memo_id=memo_id))
+
+# ---- (A) OAuth フローの準備 ----
+# credentials.json のパス (プロジェクトルートに配置している想定)
+GOOGLE_CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'credentials.json')
+
+# スコープ: Gmailでの送信を行うために、以下を指定
+SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
+@app.route('/google_login')
+def google_login():
+    """
+    ユーザーをGoogleの認証ページへリダイレクトする。
+    ローカルの場合、http://localhost:3000/google_callback に返ってくる。
+    """
+    flow = Flow.from_client_secrets_file(
+        GOOGLE_CLIENT_SECRETS,
+        scopes=SCOPES,
+        redirect_uri=url_for('google_callback', _external=True)
+    )
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true'
+    )
+    session['oauth_state'] = state
+    return redirect(authorization_url)
+
+@app.route('/google_callback')
+def google_callback():
+    """
+    GoogleからリダイレクトされるコールバックURL。
+    ここで認証コードを受け取り、アクセストークンを取得する。
+    """
+    flow = Flow.from_client_secrets_file(
+        GOOGLE_CLIENT_SECRETS,
+        scopes=SCOPES,
+        redirect_uri=url_for('google_callback', _external=True)
+    )
+
+    flow.fetch_token(authorization_response=request.url)
+
+    credentials = flow.credentials
+    # アクセストークンやリフレッシュトークンなどをセッションに保存（デモ用）
+    session['credentials'] = {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    }
+
+    return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>"
+
+@app.route('/send_test_mail')
+def send_test_mail():
+    """
+    セッションに保存したトークンを使ってGmail APIでメールを送信するテスト。
+    URLパラメータ notify=off なら、メール送信をスキップします。
+    """
+    if request.args.get('notify', 'on') == 'off':
+        return "メール通知はオフに設定されています。"
+
+    if 'credentials' not in session:
+        return "認証情報がありません。<a href='/google_login'>Googleログイン</a>"
+
+    creds_info = session['credentials']
+    creds = Credentials(
+        token=creds_info['token'],
+        refresh_token=creds_info['refresh_token'],
+        token_uri=creds_info['token_uri'],
+        client_id=creds_info['client_id'],
+        client_secret=creds_info['client_secret'],
+        scopes=creds_info['scopes']
+    )
+
+    service = build('gmail', 'v1', credentials=creds)
+
+    from email.mime.text import MIMEText
+    import base64
+
+    message = MIMEText('これはテストメールです。')
+    message['to'] = 'taiki.msw.sabu@gmail.com'  # ここを実際のアドレスに変更
+    message['subject'] = 'Gmail APIテスト'
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+    try:
+        service.users().messages().send(
+            userId='me',
+            body={'raw': raw}
+        ).execute()
+        return "メール送信に成功しました。"
+    except Exception as e:
+        return f"メール送信に失敗しました: {str(e)}"
+
+    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

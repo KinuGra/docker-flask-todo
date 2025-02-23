@@ -6,8 +6,20 @@ import os
 from uuid import UUID
 from datetime import datetime, timedelta
 
+from google import genai
+import logging
+
 # .envファイルを読み込む
 load_dotenv()
+
+# 環境変数からAPIキーを取得
+api_key = os.getenv('YOUR_API_KEY')
+if not api_key:
+    raise ValueError("APIキーが設定されていません。")
+client = genai.Client(api_key=api_key)
+# response = client.models.generate_content(
+#     model="gemini-2.0-flash", contents="ここにgeminiに与えるプロンプトを入れる"
+# )
 
 # 環境変数からデータベース接続情報を取得
 POSTGRES_USER = os.getenv('POSTGRES_USER')
@@ -49,6 +61,20 @@ def index():
         memos = query.order_by(Memo.created_at.desc()).all()
 
     return render_template('index.html', memos=memos)
+
+@app.route('/summarize', methods=['GET'])
+def summarize_tasks():
+    memos = Memo.query.all()
+    prompt = "1. **のようなマークダウン記法は使わない方法で見やすく答えて\n2. 20行以内にまとめて\n3. まずどのタスクからこなすべきですか？\n4. 以下のタスクを効率的にこなすための助言を、中学生でもわかるように教えて:\n"
+    for memo in memos:
+        prompt += f"タイトル: {memo.title}\n詳細: {memo.content}\n期限: {memo.deadline}\n\n"
+
+    response = client.models.generate_content(
+        model="gemini-2.0-flash", contents=prompt
+    )
+    ai_summary = response.text
+
+    return render_template('summary.html', ai_summary=ai_summary)
 
 @app.route('/memo/<uuid:memo_id>/toggle_complete', methods=['POST'])
 def toggle_complete(memo_id):

@@ -22,6 +22,9 @@
             <a href="{{ url_for('index', filter='week') }}" class="button">
                 <i class="fas fa-calendar-week"></i> 1週間以内
             </a>
+            <a href="{{ url_for('summarize_tasks') }}" class="button">
+                <i class="fas fa-list-alt"></i> AIアドバイス
+            </a>
 
             <!-- ソート -->
             <form method="GET" action="/" class="sort-form">

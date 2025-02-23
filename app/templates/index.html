@@ -13,22 +13,23 @@
         <h1>ToDo</h1>
         <p class="sub-title">〜 リマインダーアプリ 〜</p>
 
-        <a href="{{ url_for('create_memo') }}" class="button">
-            <i class="fas fa-pencil-alt"></i> 追加
-        </a>
-
-        <form method="GET" action="/" class="sort-form">
-            <label for="sort">並び替え:</label>
-            <select id="sort" name="sort">
-                <option value="created_at_desc">作成日の新しい順</option>
-                <option value="deadline_asc">期限日の近い順</option>
-                <option value="deadline_desc">期限日の遠い順</option>
-            </select>
-            <button type="submit">適用</button>
-        </form>
-
         <div class="memos">
             <h2 class="title-border">ToDo List</h2>
+
+            <a href="{{ url_for('create_memo') }}" class="button">
+                <i class="fas fa-pencil-alt"></i> 追加
+            </a>
+
+            <!-- ソート -->
+            <form method="GET" action="/" class="sort-form">
+                <label for="sort">並び替え:</label>
+                <select id="sort" name="sort">
+                    <option value="created_at_desc">作成日（降順）</option>
+                    <option value="deadline_asc">期限日（昇順）</option>
+                    <option value="deadline_desc">期限日（降順）</option>
+                </select>
+                <button type="submit">適用</button>
+            </form>
 
             {% if not memos %}
                 <p>やることが登録されていません。</p>

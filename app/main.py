@@ -29,7 +29,13 @@ def create_tables():
 # メモ一覧を表示
 @app.route('/')
 def index():
-    memos = Memo.query.order_by(Memo.created_at.desc()).all()
+    sort = request.args.get('sort', 'created_at_desc')
+    if sort == 'deadline_asc':
+        memos = Memo.query.order_by(Memo.deadline.asc()).all()
+    elif sort == 'deadline_desc':
+        memos = Memo.query.order_by(Memo.deadline.desc()).all()
+    else:
+        memos = Memo.query.order_by(Memo.created_at.desc()).all()
     return render_template('index.html', memos=memos)
 
 # メモの詳細を表示
@@ -49,7 +55,7 @@ def create_memo():
     title = request.form['title']
     content = request.form['content']
     deadline = request.form.get('deadline')
-    new_memo = Memo(title=title, content=content, deadline=deadline)
+    new_memo = Memo(title=title, content=content, deadline=deadline if deadline else None)
     db.session.add(new_memo)
     db.session.commit()
     return redirect(url_for('index'))
@@ -79,7 +85,8 @@ def update_memo(memo_id):
     memo = Memo.query.get_or_404(str(memo_id))
     memo.title = request.form['title']
     memo.content = request.form['content']
-    memo.deadline = request.form.get('deadline')
+    deadline = request.form.get('deadline')
+    memo.deadline = deadline if deadline else None
     db.session.commit()
     return redirect(url_for('view_memo', memo_id=memo_id))
 

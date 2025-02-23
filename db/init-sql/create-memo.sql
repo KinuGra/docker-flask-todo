@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS Memo (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    deadline TIMESTAMP
+    deadline TIMESTAMP,
 );
 
 -- ダミーデータ挿入

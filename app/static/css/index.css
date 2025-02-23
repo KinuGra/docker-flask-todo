@@ -79,3 +79,7 @@
         background: #0056b3;
     }
 }
+
+.completed-title {
+    color: rgb(196, 196, 196); /* 斜線が見やすくなるように色を変更 */
+}

@@ -50,7 +50,7 @@
                                 {% if memo.completed %}checked{% endif %}>
 
                         <!-- タスク名  既存-->
-                        <a href="{{ url_for('view_memo', memo_id=memo.id) }}">{{ memo.title }}</a>
+                        <a href="{{ url_for('view_memo', memo_id=memo.id) }}" class="{% if memo.completed %}completed-title{% endif %}">{{ memo.title }}</a>
                         <p class="small">作成日: {{ memo.created_at.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
                         {% if memo.deadline %}
                         <p class="small">期限日: {{ memo.deadline.strftime('%Y年 %m月 %d日 %H:%M') }}</p>

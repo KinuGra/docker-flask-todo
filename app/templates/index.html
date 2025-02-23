@@ -19,6 +19,9 @@
             <a href="{{ url_for('create_memo') }}" class="button">
                 <i class="fas fa-pencil-alt"></i> 追加
             </a>
+            <a href="{{ url_for('index', filter='week') }}" class="button">
+                <i class="fas fa-calendar-week"></i> 1週間以内
+            </a>
 
             <!-- ソート -->
             <form method="GET" action="/" class="sort-form">
@@ -59,6 +62,9 @@
                 </li>
                 {% endfor %}
             </ul>
+            <a href="{{ url_for('index') }}" class="button">
+                <i class="fas fa-list"></i> 一覧に戻る
+            </a>
         </div>
     </div>
 </body>

@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask_migrate import Migrate
 import os
 from uuid import UUID
+from datetime import datetime, timedelta
 
 # .envファイルを読み込む
 load_dotenv()
@@ -33,16 +34,22 @@ def create_tables():
 @app.route('/')
 def index():
     sort = request.args.get('sort', 'created_at_desc')
+    filter = request.args.get('filter', None)
+    query = Memo.query
+
+    if filter == 'week':
+        one_week_later = datetime.now() + timedelta(days=7)
+        query = query.filter(Memo.deadline <= one_week_later, Memo.deadline >= datetime.now())
+
     if sort == 'deadline_asc':
-        memos = Memo.query.order_by(Memo.deadline.asc()).all()
+        memos = query.order_by(Memo.deadline.asc()).all()
     elif sort == 'deadline_desc':
-        memos = Memo.query.order_by(Memo.deadline.desc()).all()
+        memos = query.order_by(Memo.deadline.desc()).all()
     else:
-        memos = Memo.query.order_by(Memo.created_at.desc()).all()
+        memos = query.order_by(Memo.created_at.desc()).all()
+
     return render_template('index.html', memos=memos)
 
-
-#sabo
 @app.route('/memo/<uuid:memo_id>/toggle_complete', methods=['POST'])
 def toggle_complete(memo_id):
     memo = Memo.query.get_or_404(str(memo_id))
@@ -52,7 +59,12 @@ def toggle_complete(memo_id):
     memo.completed = (completed_form_value == 'True')
 
     db.session.commit()
-    return redirect(url_for('index'))
+
+    # 現在の並び替えパラメータを取得
+    sort = request.args.get('sort', 'created_at_desc')
+    filter = request.args.get('filter', None)
+
+    return redirect(url_for('index', sort=sort, filter=filter))
 
 # メモの詳細を表示
 @app.route('/memo/<uuid:memo_id>')

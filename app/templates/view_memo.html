@@ -14,6 +14,9 @@
         <div class="contents">
             <p>{{ memo.content }}</p>
             <p class="small">作成日: {{ memo.created_at.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
+            {% if memo.deadline %}
+            <p class="small">期限日: {{ memo.deadline.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
+            {% endif %}
         </div>
 
         <div class="button-group">

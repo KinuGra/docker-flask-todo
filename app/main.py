@@ -48,7 +48,8 @@ def show_create_memo():
 def create_memo():
     title = request.form['title']
     content = request.form['content']
-    new_memo = Memo(title=title, content=content)
+    deadline = request.form.get('deadline')
+    new_memo = Memo(title=title, content=content, deadline=deadline)
     db.session.add(new_memo)
     db.session.commit()
     return redirect(url_for('index'))

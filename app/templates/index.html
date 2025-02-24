@@ -17,6 +17,9 @@
             <i class="fas fa-pencil-alt"></i> 追加
         </a>
 
+        <button id="start-speech" class="speech-button">音声認識</button>
+        <div id="speech-result"></div>
+
         <form method="GET" action="/" class="sort-form">
             <label for="sort">並び替え:</label>
             <select id="sort" name="sort">
@@ -47,5 +50,6 @@
             </ul>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

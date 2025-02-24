@@ -20,11 +20,33 @@
         </div>
 
         <div id="summary_section">
-            <p><strong>要約:</strong> <span id="summary_result">
-                {% if memo.summary %}{{ memo.summary }}{% else %}未要約{% endif %}
-            </span></p>
+            <p><strong>要約:</strong> 
+                <span id="summary_result" class="summary-text">未要約</span>
+                <button id="show_more_button" class="button small hidden">もっと見る</button>
+            </p>
             <button id="summarize_button" class="button">要約する</button>
         </div>
+        
+        <style>
+            .summary-text {
+                display: -webkit-box;
+                -webkit-line-clamp: 3; /* 最大3行まで表示 */
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+            }.expanded {
+                display: block;  /* 制限を解除 */
+                -webkit-line-clamp: unset;
+                -webkit-box-orient: unset;
+                overflow: visible;
+                text-overflow: unset;
+                white-space: normal;
+            }
+            .hidden {
+                display: none;
+            }
+        </style>
 
 
         <div class="button-group">
@@ -40,36 +62,24 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const memoId = "{{ memo.id }}";
-            const summaryElement = document.getElementById("summary_result");
-    
-            if (!summaryElement.textContent.trim() || summaryElement.textContent === "未要約") {
-                fetch(`/memo/${memoId}/summarize`, { method: "POST" })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.summary) {
-                        summaryElement.textContent = data.summary;
-                    } else {
-                        summaryElement.textContent = "要約取得失敗";
-                    }
-                })
-                .catch(error => {
-                    summaryElement.textContent = "エラーが発生しました";
-                    console.error("Error:", error);
-                });
-            }
-        });
-    
         document.getElementById("summarize_button").addEventListener("click", function() {
-            const memoId = "{{ memo.id }}";
-            fetch(`/memo/${memoId}/summarize`, { method: "POST" })
-            .then(response => response.json())
+            const memoId = "{{ memo.id }}";  
+            fetch(`/memo/${memoId}/summarize`, {  
+                method: "POST",
+            })
+            .then(response => response.json())  
             .then(data => {
                 if (data.summary) {
-                    document.getElementById("summary_result").textContent = data.summary;
+                    const summaryElement = document.getElementById("summary_result");
+                    summaryElement.textContent = data.summary;  
+                    summaryElement.classList.add("summary-text");  
+    
+                    // もっと見るボタンを表示（長い場合）
+                    if (data.summary.length > 100) {
+                        document.getElementById("show_more_button").classList.remove("hidden");
+                    }
                 } else {
-                    document.getElementById("summary_result").textContent = "要約取得失敗";
+                    document.getElementById("summary_result").textContent = "要約取得失敗"; 
                 }
             })
             .catch(error => {
@@ -77,6 +87,13 @@
                 console.error("Error:", error);
             });
         });
+    
+        // 「もっと見る」ボタンの処理
+        document.getElementById("show_more_button").addEventListener("click", function() {
+            document.getElementById("summary_result").classList.remove("summary-text");
+            this.classList.add("hidden");
+        });
     </script>
+    
 </body>
 </html>

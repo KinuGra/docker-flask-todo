@@ -10,6 +10,16 @@
 </head>
 <body>
     <div id="index" class="container">
+        {% if session.get('logged_in') %}
+          <p style="color: green;">ログイン中</p>
+        {% else %}
+          <p style="color: red;">未ログイン</p>
+        {% endif %}
+        {% if session.get('logged_in') %}
+            <a href="{{ url_for('logout') }}">ログアウト</a>
+        {% endif %}
+
+        
         <h1><a href="{{ url_for('index') }}">LaskTask</a></h1>
         <p class="sub-title">〜 あなたのタスク管理をスマートに 〜</p>
 
@@ -24,6 +34,9 @@
             </a>
             <a href="{{ url_for('summarize_tasks') }}" class="button">
                 <i class="fas fa-list-alt"></i> AIアドバイス
+            </a>
+            <a href="{{ url_for('google_login') }}" class="button">
+                <i class="fas fa-envelope-alt"></i> Gmail連携
             </a>
 
             <!-- ソート -->
@@ -63,6 +76,14 @@
                         <p class="small" style="font-weight: bold;">期限日: {{ memo.deadline.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
                         {% endif %}
                         <!-- <p class="small">作成日: {{ memo.created_at.strftime('%Y年 %m月 %d日 %H:%M') }}</p> -->
+                    </form>
+                    <!-- メール送信用フォーム -->
+                    <form method="POST" 
+                    action="{{ url_for('send_mail_for_memo', memo_id=memo.id) }}" 
+                    style="display:inline;">
+                        <button type="submit" class="button">
+                        <i class="fas fa-envelope"></i> Send Mail
+                        </button>
                     </form>
                 </li>
                 {% endfor %}

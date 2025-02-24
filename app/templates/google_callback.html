@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Googleアカウント連携完了</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 10px;
+        }
+        a {
+            color: blue;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="email"], input[type="datetime-local"] {
+            width: 300px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Googleアカウントとの連携が完了しました！</h1>
+    <p>以下の機能がご利用いただけます。</p>
+    <ul>
+        <li>メール送信機能</li>
+        <li>リマインダー機能</li>
+        <li>タスク管理機能</li>
+    </ul>
+    <p><a href="/send_test_mail">テストメールを送信する</a></p>
+
+    <!--
+    <form action="/set_reminder" method="post">
+        <label for="email">リマインダー送信先メールアドレス:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="datetime">リマインダー送信日時:</label>
+        <input type="datetime-local" id="datetime" name="datetime" required><br>
+
+        <button type="submit">リマインダーを設定する</button>
+    </form>
+    -->
+</body>
+</html>

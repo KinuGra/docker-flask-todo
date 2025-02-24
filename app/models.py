@@ -11,3 +11,6 @@ class Memo(db.Model):
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
     deadline = db.Column(db.DateTime, nullable=True)
     completed = db.Column(db.Boolean, default=False)
+
+    summary = db.Column(db.Text, nullable=True)  # 追加
+    

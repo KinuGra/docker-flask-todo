@@ -1,9 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from app.models import db, Memo
 from dotenv import load_dotenv
 from flask_migrate import Migrate
 import os
+import requests
 from uuid import UUID
+
+import google.generativeai as genai
+import traceback  # 追加
+
 
 # .envファイルを読み込む
 load_dotenv()
@@ -23,6 +28,40 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 migrate = Migrate(app, db)  # Flask-Migrate の設定
+
+# 環境変数から Gemini APIキーを取得
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+
+@app.route("/memo/<uuid:memo_id>/summarize", methods=["POST"])
+def summarize_memo(memo_id):
+    memo = Memo.query.get_or_404(str(memo_id))
+
+    if not memo.content:
+        return jsonify({"summary": "内容がありません"}), 400
+
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [{"parts": [{"text": f"要約してください: {memo.content}"}]}],
+        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 100},
+    }
+
+    response = requests.post(
+        f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+        headers=headers,
+        json=data
+    )
+
+    if response.status_code != 200:
+        return jsonify({"error": "要約の取得に失敗しました"}), 500
+
+    result = response.json()
+    summary = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "要約できませんでした")
+
+    memo.summary = summary
+    db.session.commit()
+
+    return jsonify({"summary": summary})
 
 
 @app.before_request
@@ -65,7 +104,6 @@ def view_memo(memo_id):
 def show_create_memo():
     return render_template('create_memo.html')
 
-# 新しいメモを作成
 @app.route('/create', methods=['POST'])
 def create_memo():
     title = request.form['title']
@@ -74,6 +112,10 @@ def create_memo():
     new_memo = Memo(title=title, content=content, deadline=deadline if deadline else None)
     db.session.add(new_memo)
     db.session.commit()
+
+    # 自動で要約を取得
+    summarize_memo(new_memo.id)
+
     return redirect(url_for('index'))
 
 # メモを削除
@@ -104,6 +146,10 @@ def update_memo(memo_id):
     deadline = request.form.get('deadline')
     memo.deadline = deadline if deadline else None
     db.session.commit()
+
+    # 更新後に要約を取得
+    summarize_memo(memo.id)
+
     return redirect(url_for('view_memo', memo_id=memo_id))
 
 if __name__ == '__main__':

@@ -19,6 +19,14 @@
             {% endif %}
         </div>
 
+        <div id="summary_section">
+            <p><strong>要約:</strong> <span id="summary_result">
+                {% if memo.summary %}{{ memo.summary }}{% else %}未要約{% endif %}
+            </span></p>
+            <button id="summarize_button" class="button">要約する</button>
+        </div>
+
+
         <div class="button-group">
             <a href="{{ url_for('edit_memo', memo_id=memo.id) }}" class="edit-button button">
                 <i class="fas fa-edit"></i> 編集
@@ -28,8 +36,47 @@
                 <button type="submit" class="delete button">削除</button>
             </form>
         </div>
-
         <a href="{{ url_for('index') }}" class="button">一覧に戻る</a>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const memoId = "{{ memo.id }}";
+            const summaryElement = document.getElementById("summary_result");
+    
+            if (!summaryElement.textContent.trim() || summaryElement.textContent === "未要約") {
+                fetch(`/memo/${memoId}/summarize`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.summary) {
+                        summaryElement.textContent = data.summary;
+                    } else {
+                        summaryElement.textContent = "要約取得失敗";
+                    }
+                })
+                .catch(error => {
+                    summaryElement.textContent = "エラーが発生しました";
+                    console.error("Error:", error);
+                });
+            }
+        });
+    
+        document.getElementById("summarize_button").addEventListener("click", function() {
+            const memoId = "{{ memo.id }}";
+            fetch(`/memo/${memoId}/summarize`, { method: "POST" })
+            .then(response => response.json())
+            .then(data => {
+                if (data.summary) {
+                    document.getElementById("summary_result").textContent = data.summary;
+                } else {
+                    document.getElementById("summary_result").textContent = "要約取得失敗";
+                }
+            })
+            .catch(error => {
+                document.getElementById("summary_result").textContent = "エラーが発生しました";
+                console.error("Error:", error);
+            });
+        });
+    </script>
 </body>
 </html>

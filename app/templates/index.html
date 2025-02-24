@@ -29,6 +29,8 @@
             <a href="{{ url_for('create_memo') }}" class="button">
                 <i class="fas fa-pencil-alt"></i> 追加
             </a>
+            <button id="start-speech" class="button">音声認識</button>
+            <div id="speech-result"></div>
             <a href="{{ url_for('index', filter='week') }}" class="button">
                 <i class="fas fa-calendar-week"></i> 1週間以内
             </a>
@@ -49,6 +51,9 @@
                 </select>
                 <input type="hidden" name="filter" value="{{ request.args.get('filter', '') }}">
             </form>
+
+        <div class="memos">
+            <h2 class="title-border">ToDo List</h2>
 
             {% if not memos %}
                 <p>やることが登録されていません。</p>
@@ -81,7 +86,7 @@
                     <form method="POST" 
                     action="{{ url_for('send_mail_for_memo', memo_id=memo.id) }}" 
                     style="display:inline;">
-                        <button type="submit" class="button">
+                        <button type="submit" class="sendmail-button">
                         <i class="fas fa-envelope"></i> Send Mail
                         </button>
                     </form>
@@ -105,5 +110,6 @@
             sessionStorage.setItem("scrollPosition", window.scrollY);
         });
     </script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

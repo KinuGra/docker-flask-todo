@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from app.models import db, Memo
 from dotenv import load_dotenv
 from flask_migrate import Migrate
@@ -55,7 +55,36 @@ migrate = Migrate(app, db)  # Flask-Migrate の設定
 def create_tables():
     db.create_all()
 
-# メモ一覧を表示
+def recognize_speech(audio_file):
+    r = sr.Recognizer()
+    with sr.AudioFile(audio_file) as source:
+        audio = r.record(source)
+
+    try:
+        text = r.recognize_google(audio, language='ja-JP')
+        return text
+    except sr.UnknownValueError:
+        return "音声が認識できませんでした"
+    except sr.RequestError as e:
+        return f"音声認識APIへのリクエストに失敗しました: {e}"
+    
+
+@app.route('/speech', methods=['POST'])
+def speech():
+    data = request.get_json()
+    text = data.get('text')
+
+    if not text:
+        return jsonify({'error': 'テキストがありません'}), 400
+
+    # 音声認識の結果をメモとして追加
+    new_memo = Memo(title=text, content="")
+    db.session.add(new_memo)
+    db.session.commit()
+    print(f"New memo created with id: {new_memo.id}, title: {new_memo.title}")
+
+    # indexにリダイレクト
+    return redirect(url_for('index'))
 @app.route('/')
 def index():
     sort = request.args.get('sort', 'created_at_desc')

@@ -42,8 +42,8 @@
                 <li class="card">
                     <a href="{{ url_for('view_memo', memo_id=memo.id) }}">{{ memo.title }}</a>
                     <p class="small">作成日: {{ memo.created_at.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
-                    {% if memo.deadline %}
-                    <p class="small">期限日: {{ memo.deadline.strftime('%Y年 %m月 %d日 %H:%M') }}</p>
+                    {% if memo.deadline %}<h2>
+                    <p class="small" style="color: rgb(195, 9, 9);">期限日: {{ memo.deadline.strftime('%Y年 %m月 %d日 %H:%M') }}</p></h2>
                     {% endif %}
                 </li>
                 {% endfor %}

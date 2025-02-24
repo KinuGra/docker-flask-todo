@@ -205,18 +205,25 @@ def google_callback():
         credentials = flow.credentials
         # アクセストークンやリフレッシュトークンなどをセッションに保存（デモ用）
         session['credentials'] = {
-                'token': credentials.token,
-                'refresh_token': credentials.refresh_token,
-                'token_uri': credentials.token_uri,
-                'client_id': credentials.client_id,
-                'client_secret': credentials.client_secret,
-                'scopes': credentials.scopes,
-                'expiry': credentials.expiry.isoformat(),  # 文字列に変換
-            }
+            'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes,
+            'expiry': credentials.expiry.isoformat(),  # 文字列に変換
+        }
         session.permanent = True  # 永続セッションを使用
-        #return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>"
-        #return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>", 200, {'Content-Type': 'text/html'}
+
+        # もし「ログイン中かどうか」をフラグ管理したい場合は下記を追加
+        session['logged_in'] = True
+
+        # 認証完了メッセージを直接返す場合:
+        # return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>", 200, {'Content-Type': 'text/html'}
+
+        # 今はgoogle_callback.htmlテンプレートを返しているので、以下でOK
         return render_template('google_callback.html')
+
     except Exception as e:
         logging.error(e)
         # 以下をexceptブロック内に追加
@@ -224,7 +231,18 @@ def google_callback():
         if credentials:
             logging.error(f"Refresh token: {credentials.refresh_token}")
         return f"Googleアカウントとの連携に失敗しました: {str(e)}", 500, {'Content-Type': 'text/html'}
+    
+@app.route('/logout')
+def logout():
+    session.clear()  # セッションを丸ごとクリア
+    return redirect(url_for('index'))
 
+
+
+# ------------------------------------------------------------------
+# もしファイル先頭部に無ければ追加してください。
+# from google.oauth2.credentials import Credentials
+# ------------------------------------------------------------------
 
 @app.route('/send_test_mail')
 def send_test_mail():
@@ -232,14 +250,17 @@ def send_test_mail():
     セッションに保存したトークンを使ってGmail APIでメールを送信するテスト。
     URLパラメータ notify=off なら、メール送信をスキップします。
     """
+    # もし「?notify=off」がURLについていたら送信をスキップする
     if request.args.get('notify', 'on') == 'off':
         message = "メール通知はオフに設定されています。"
         return render_template('send_test_mail.html', message=message)
 
+    # セッションに認証情報がなければログインを促す
     if 'credentials' not in session:
         message = "認証情報がありません。<a href='/google_login'>Googleログイン</a>"
         return render_template('send_test_mail.html', message=message)
 
+    # セッションからOAuthトークン情報を取り出し、Credentialsを生成
     creds_info = session['credentials']
     creds = Credentials(
         token=creds_info['token'],
@@ -250,17 +271,21 @@ def send_test_mail():
         scopes=creds_info['scopes']
     )
 
+    # Gmail APIクライアントを構築
     service = build('gmail', 'v1', credentials=creds)
 
+    # メール本文作成に必要なクラスをインポート
     from email.mime.text import MIMEText
     import base64
 
+    # 送信するメールの本文を組み立て
     message = MIMEText('これはテストメールです。')
     message['to'] = 'taiki.msw.sabu@gmail.com'  # ここを実際のアドレスに変更
     message['subject'] = 'Gmail APIテスト'
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
     try:
+        # メールの送信を実行
         service.users().messages().send(
             userId='me',
             body={'raw': raw}
@@ -270,6 +295,54 @@ def send_test_mail():
         message = f"メール送信に失敗しました: {str(e)}"
 
     return render_template('send_test_mail.html', message=message)
+
+@app.route('/memo/<uuid:memo_id>/send_mail', methods=['POST'])
+def send_mail_for_memo(memo_id):
+    """
+    このメモに関するメールを送信する処理
+    """
+    # 例: ログイン必須なら
+    if 'credentials' not in session:
+        return redirect(url_for('google_login'))
+
+    # メモを取得
+    memo = Memo.query.get_or_404(str(memo_id))
+
+    # ここから先はsend_test_mail()と同じ要領でGmail API送信する
+    creds_info = session['credentials']
+    creds = Credentials(
+        token=creds_info['token'],
+        refresh_token=creds_info['refresh_token'],
+        token_uri=creds_info['token_uri'],
+        client_id=creds_info['client_id'],
+        client_secret=creds_info['client_secret'],
+        scopes=creds_info['scopes']
+    )
+    service = build('gmail', 'v1', credentials=creds)
+
+    from email.mime.text import MIMEText
+    import base64
+
+    # メール本文を作成 (メモの情報を使うなど)
+    mail_text = f"【タスク】\n\nタイトル: {memo.title}\n詳細: {memo.content}\n"
+    if memo.deadline:
+        mail_text += f"期限: {memo.deadline}\n"
+
+    message = MIMEText(mail_text)
+    message['to'] = 'taiki.msw.sabu@gmail.com'  # 宛先
+    message['subject'] = f"タスク通知: {memo.title}"
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+    try:
+        service.users().messages().send(
+            userId='me',
+            body={'raw': raw}
+        ).execute()
+        # 送信が終わったらindexへ飛ばす or 何かメッセージ表示
+        return redirect(url_for('index'))
+    except Exception as e:
+        return f"メール送信に失敗: {e}", 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

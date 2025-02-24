@@ -4,3 +4,6 @@ Flask-SQLAlchemy==3.0.5
 flask-migrate==4.0.7
 python-dotenv
 google-genai
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib

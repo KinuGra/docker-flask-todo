@@ -6,13 +6,25 @@ import os
 from uuid import UUID
 from datetime import datetime, timedelta
 
-from google import genai
 import logging
+from google import genai
+import google.auth.credentials
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google.oauth2 import id_token
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+
 
 # .envファイルを読み込む
 load_dotenv()
 
 # 環境変数からAPIキーを取得
+# Gmail APIの認証情報をcredentials.jsonから読み込む
+GOOGLE_CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'credentials.json')
+
+# Gemini APIの初期化
 api_key = os.getenv('YOUR_API_KEY')
 if not api_key:
     raise ValueError("APIキーが設定されていません。")
@@ -161,7 +173,8 @@ def google_login():
     flow = Flow.from_client_secrets_file(
         GOOGLE_CLIENT_SECRETS,
         scopes=SCOPES,
-        redirect_uri=url_for('google_callback', _external=True)
+        #redirect_uri=url_for('google_callback', _external=True)
+        redirect_uri="http://localhost:3000/google_callback"  # ここを固定
     )
     authorization_url, state = flow.authorization_url(
         access_type='offline',
@@ -176,26 +189,42 @@ def google_callback():
     GoogleからリダイレクトされるコールバックURL。
     ここで認証コードを受け取り、アクセストークンを取得する。
     """
-    flow = Flow.from_client_secrets_file(
-        GOOGLE_CLIENT_SECRETS,
-        scopes=SCOPES,
-        redirect_uri=url_for('google_callback', _external=True)
-    )
+    credentials = None  # ここであらかじめ初期化しておく
+    try:
+        flow = Flow.from_client_secrets_file(
+            GOOGLE_CLIENT_SECRETS,
+            scopes=SCOPES,
+            #redirect_uri=url_for('google_callback', _external=True)
+            redirect_uri="http://localhost:3000/google_callback"  # ここを固定
+        )
 
-    flow.fetch_token(authorization_response=request.url)
+        logging.error(request.url)
+        authorization_response = request.url
+        flow.fetch_token(authorization_response=authorization_response)
 
-    credentials = flow.credentials
-    # アクセストークンやリフレッシュトークンなどをセッションに保存（デモ用）
-    session['credentials'] = {
-        'token': credentials.token,
-        'refresh_token': credentials.refresh_token,
-        'token_uri': credentials.token_uri,
-        'client_id': credentials.client_id,
-        'client_secret': credentials.client_secret,
-        'scopes': credentials.scopes
-    }
+        credentials = flow.credentials
+        # アクセストークンやリフレッシュトークンなどをセッションに保存（デモ用）
+        session['credentials'] = {
+                'token': credentials.token,
+                'refresh_token': credentials.refresh_token,
+                'token_uri': credentials.token_uri,
+                'client_id': credentials.client_id,
+                'client_secret': credentials.client_secret,
+                'scopes': credentials.scopes,
+                'expiry': credentials.expiry.isoformat(),  # 文字列に変換
+            }
+        session.permanent = True  # 永続セッションを使用
+        #return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>"
+        #return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>", 200, {'Content-Type': 'text/html'}
+        return render_template('google_callback.html')
+    except Exception as e:
+        logging.error(e)
+        # 以下をexceptブロック内に追加
+        logging.error(f"Credentials: {credentials}")
+        if credentials:
+            logging.error(f"Refresh token: {credentials.refresh_token}")
+        return f"Googleアカウントとの連携に失敗しました: {str(e)}", 500, {'Content-Type': 'text/html'}
 
-    return "Googleアカウントとの連携が完了しました。<br><a href='/send_test_mail'>テストメール送信</a>"
 
 @app.route('/send_test_mail')
 def send_test_mail():
@@ -204,10 +233,12 @@ def send_test_mail():
     URLパラメータ notify=off なら、メール送信をスキップします。
     """
     if request.args.get('notify', 'on') == 'off':
-        return "メール通知はオフに設定されています。"
+        message = "メール通知はオフに設定されています。"
+        return render_template('send_test_mail.html', message=message)
 
     if 'credentials' not in session:
-        return "認証情報がありません。<a href='/google_login'>Googleログイン</a>"
+        message = "認証情報がありません。<a href='/google_login'>Googleログイン</a>"
+        return render_template('send_test_mail.html', message=message)
 
     creds_info = session['credentials']
     creds = Credentials(
@@ -234,11 +265,11 @@ def send_test_mail():
             userId='me',
             body={'raw': raw}
         ).execute()
-        return "メール送信に成功しました。"
+        message = "メール送信に成功しました。"
     except Exception as e:
-        return f"メール送信に失敗しました: {str(e)}"
+        message = f"メール送信に失敗しました: {str(e)}"
 
-    
+    return render_template('send_test_mail.html', message=message)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

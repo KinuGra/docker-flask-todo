@@ -134,4 +134,29 @@ docker-compose up --build
     ![](./img/gmail.png)
     ![](./img/gmail-api.png)
 
+7. コードを編集したらCtrl+Cでstopして以下のコマンドを入力してください。
+
+```
+docker compose up --build -d
+docker compose up
+```
+
+## エラーの対処法メモ
+
+1. Docker Desktopを起動
+2. とりあえずビルドしてみる
+   `docker-compose build --no-cache`
+3. Ctrl+Cでstopして再度`docker compose up --build -d` & `docker compose up`
+4. ポート番号が3000であることに注意
+5. `.env`ファイルに追記する場合は`compose.yml`にも追記
+6. compose upした後に別のターミナルで`docker exec -it docker-flask-todo-web-1 sh`
+   - #が表示されるので`flask db upgrade`を入力
+    <br>もしフォルダの名前がpy-todoなら`docker exec -it py-todo-web-1 sh`のようにコマンドを変更
+    <br>compose upした際に名前が表示されるのでそちらを確認
+
+![](./img/container.png)
+
+7. `./.env`ファイルと`./app/credentials.json`ファイルを作成したかどうか確認
+8. とりあえずAIにエラーメッセージを投げてみる
+
 <p align="right">(<a href="#top">トップへ</a>)</p>

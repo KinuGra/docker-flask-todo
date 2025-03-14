@@ -22,7 +22,12 @@ services:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       FLASK_APP: main:app
+
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      YOUR_API_KEY: ${YOUR_API_KEY}
+      OAUTHLIB_INSECURE_TRANSPORT: "1"
+
     volumes:
       - ./app:/app
     depends_on:

@@ -16,7 +16,7 @@
             <input type="text" id="title" name="title" value="{{ memo.title }}" required>
 
             <label for="content">詳細</label>
-            <textarea id="content" name="content" required>{{ memo.content }}</textarea>
+            <textarea id="content" name="content">{{ memo.content }}</textarea>
 
             <label for="deadline">期限日</label>
             <input type="datetime-local" id="deadline" name="deadline" value="{{ memo.deadline.isoformat() if memo.deadline }}">

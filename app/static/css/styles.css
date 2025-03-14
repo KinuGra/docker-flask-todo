@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, 'M PLUS Rounded 1c', sans-serif; /* ポップなフォントを追加 */
     color: #333;
 }
 
@@ -30,9 +30,10 @@ textarea {
     margin: 40px auto;
     width: 90%;
     background-color: #ececec;
+    /* background: linear-gradient(135deg, #ececec 0%, #f0f0f0 100%); /* グラデーションを追加 */
     padding: 20px 40px;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1); /* 影を追加 */
 }
 
 .button {
@@ -57,6 +58,12 @@ textarea {
     z-index: 9;
     border: 0;
     font-weight: bold;
+    transition: all 0.3s ease; /* ホバーエフェクト用 */
+}
+
+.button:hover {
+    transform: translateY(-2px); /* 少し浮き上がる */
+    box-shadow: rgba(0, 0, 0, 0.2) 0 4px 8px; /* 影を濃くする */
 }
 
 .card {

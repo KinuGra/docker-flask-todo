@@ -308,7 +308,7 @@ def send_test_mail():
 
     # 送信するメールの本文を組み立て
     message = MIMEText('これはテストメールです。')
-    message['to'] = 'abcabcd@kagi.be'  # ここを実際のアドレスに変更
+    message['to'] = 'Kyuma.K1390@gmail.com'  # ここを実際のアドレスに変更
     message['subject'] = 'Gmail APIテスト'
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
@@ -357,7 +357,7 @@ def send_mail_for_memo(memo_id):
         mail_text += f"期限: {memo.deadline}\n"
 
     message = MIMEText(mail_text)
-    message['to'] = 'abcabcd@kagi.be'  # 宛先
+    message['to'] = 'Kyuma.K1390@gmail.com'  # 宛先
     message['subject'] = f"タスク通知: {memo.title}"
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
